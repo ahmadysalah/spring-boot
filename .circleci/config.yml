@@ -21,10 +21,8 @@ jobs:
             echo "$SSH_KEY" > admin-panel-ssh-key.pem 
             chmod 600 admin-panel-ssh-key.pem
             cat admin-panel-ssh-key.pem
-      - run:
-          name: Copy jar to server
-          command: |
-            scp -o "StrictHostKeyChecking=no" -i "admin-panel-ssh-key.pem" target/*.jar ubuntu@52.214.98.80:/home/ubuntu/app.jar
+            scp -o "StrictHostKeyChecking=no" -i "admin-panel-ssh-key.pem" target/*.jar ubuntu@52.214.98.80:/home/ubuntu/spring/build/app.jar
+      
       - run:
           name: Install dependencies and run application
           command: |
