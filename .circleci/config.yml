@@ -10,10 +10,10 @@ jobs:
       - run:
           name: Install Maven 3.8.3
           command: |
-            wget https://apache.osuosl.org/maven/maven-3/3.8.3/binaries/apache-maven-3.8.3-bin.tar.gz
-            tar -xzf apache-maven-3.8.3-bin.tar.gz
-            sudo mv apache-maven-3.8.3 /opt/
-            sudo ln -s /opt/apache-maven-3.8.3/bin/mvn /usr/local/bin/mvn
+            wget https://downloads.apache.org/maven/maven-3/3.8.3/binaries/apache-maven-3.8.3-bin.tar.gz
+            tar  -xvzf apache-maven-3.8.3-bin.tar.gz
+            sudo  mv apache-maven-3.8.3 /opt
+            sudo  ln -s /opt/apache-maven-3.8.3/bin/mvn /usr/bin/mvn
       - run: sudo apt-get install -y openjdk-17-jdk
       - run: mvn -B -DskipTests clean package
       - run:
