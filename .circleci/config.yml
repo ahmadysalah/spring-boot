@@ -1,46 +1,24 @@
-# Java Gradle CircleCI 2.0 configuration file
-# See: https://circleci.com/docs/2.0/language-java/
+# create circleci config file to test and build java spring boot application using maven and push the project to new folder to ec2 instance using ssh and install all dependencies and run the jar file using pm2 to run the application in background and make it available to the public at port 5000 
 version: 2
-
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
   build:
-    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
-      # specify the version you desire here
       - image: circleci/openjdk:8-jdk
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
-    working_directory: ~/repo
-
-    environment:
-      # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx3200m
-      TERM: dumb
-    # Add steps to the job
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "build.gradle" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
-      - run: gradle dependencies
-
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: v1-dependencies-{{ checksum "build.gradle" }}
-
-      # run tests!
-      - run: gradle test
+      - run: mvn package
+      - run: mkdir -p /home/ubuntu/springboot
+      - run: mv target/*.jar /home/ubuntu/springboot
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y python-pip
+      - run: sudo pip install awscli
+      - run: sudo apt-get install -y sshpass
+      - run: sshpass -p  "admin-panel-ssh-key.pem" ubuntu@52.214.98.80  scp -o StrictHostKeyChecking=no -i /home/ubuntu/circleci-ec2-ssh-key.pem /home/ubuntu/springboot/*.jar
+      - run: sudo apt-get install -y openjdk-8-jdk
+      - run: sudo apt-get install -y maven
+      - run: sudo apt-get install -y nodejs
+      - run: sudo apt-get install -y npm
+      - run: sudo npm install pm2 -g
+      - run: sudo pm2 start /home/ubuntu/springboot/*.jar
+      - run: sudo pm2 startup
+      - run: sudo pm2 save
