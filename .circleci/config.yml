@@ -33,7 +33,7 @@ jobs:
               sudo apt-get -y install maven; \
               sudo apt-get -y install maven; \
               sudo fuser -k 8080/tcp; \
-             nohup java -jar /home/ubuntu/spring/build/app.jar --server.port=8080 "
+              sudo nohup java -jar /home/ubuntu/spring/build/app.jar > /dev/null 2>&1 & \
 
 workflows:
   build-and-deploy:
