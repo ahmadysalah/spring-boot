@@ -9,18 +9,13 @@ jobs:
       - checkout
       - run:
           name: Install Maven 3.8.3
-          command: |
-            wget https://archive.apache.org/dist/maven/maven-3/3.9.1/binaries/apache-maven-3.9.1-bin.tar.gz
-            tar  -xvzf apache-maven-3.9.1-bin.tar.gz
-            sudo  mv apache-maven-3.9.1 /opt
-            sudo  ln -s /opt/apache-maven-3.9.1/bin/mvn /usr/bin/mvn
-      - run: mvn -B -DskipTests clean package
+          command: mvn clean install
       - run:
           name: Copy JAR file to EC2 instance
           command: |
             echo "$SSH_KEY" > admin-panel-ssh-key.pem
             chmod 600 admin-panel-ssh-key.pem
-            scp -i admin-panel-ssh-key.pem target/*.jar  -o StrictHostKeyChecking=no  ubuntu@52.214.98.80:/home/ubuntu/app.jar
+            scp -i admin-panel-ssh-key.pem target/*.jar ubuntu@52.214.98.80:/home/ubuntu/app.jar
       - run:
           name: Install dependencies and run application
           command: |
