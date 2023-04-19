@@ -14,7 +14,6 @@ jobs:
             tar  -xvzf apache-maven-3.9.1-bin.tar.gz
             sudo  mv apache-maven-3.9.1 /opt
             sudo  ln -s /opt/apache-maven-3.9.1/bin/mvn /usr/bin/mvn
-      - run: sudo apt-get install -y openjdk-17-jdk
       - run: mvn -B -DskipTests clean package
       - run:
           name: Copy JAR file to EC2 instance
