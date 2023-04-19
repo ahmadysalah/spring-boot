@@ -16,7 +16,7 @@ jobs:
             sudo  ln -s /opt/apache-maven-3.9.1/bin/mvn /usr/bin/mvn
       - run: mvn -B -DskipTests clean package
       - run:
-          name: ssh-keyscan
+          name:  SSH key setup
           command: |
             echo "$SSH_KEY" > admin-panel-ssh-key.pem 
             chmod 600 admin-panel-ssh-key.pem 
