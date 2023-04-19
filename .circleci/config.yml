@@ -32,9 +32,9 @@ jobs:
               sudo apt-get -y install openjdk-17-jdk; \     
               sudo apt-get -y install maven; \
               sudo apt-get -y install maven; \
-              sudo kill -9 $(sudo lsof -t -i:8080); \
-              pkill -f app.jar; \
-              java -jar /home/ubuntu/spring/build/app.jar --server.port=8080 "
+              ps aux | grep 'java -jar'
+              sudo kill -9 $(ps aux | grep 'java -jar' | awk '{print $2}') && \
+              java -jar /home/ubuntu/spring/build/app.jar --server.port=8080"
 
 workflows:
   build-and-deploy:
