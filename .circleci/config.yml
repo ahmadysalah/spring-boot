@@ -31,7 +31,8 @@ jobs:
               "sudo apt-get -y update && sudo apt-get -y upgrade; \
               sudo apt-get -y install openjdk-17-jdk; \     
               sudo apt-get -y install maven; \
-              nohup java -jar /home/ubuntu/spring/build/app.jar --server.port=8080 > /home/ubuntu/app.log 2>&1 & ;"
+              sudo apt-get -y install maven; \
+              nohup java -jar /home/ubuntu/spring/build/app.jar --server.port=8080 > /home/ubuntu/app.log 2>&1 & "
 
 workflows:
   build-and-deploy:
