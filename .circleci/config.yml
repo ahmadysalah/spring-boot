@@ -3,38 +3,34 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image:  circleci/openjdk:11.0.8-node-browsers
+      - image: circleci/openjdk:17-jdk-buster
     working_directory: ~/app
     steps:
       - checkout
       - run:
-          name: Build application
-          command: mvn clean install
-      - run: sudo apt-get install -y maven
-      - run: sudo apt-get install -y openjdk-11-jdk
-      - run: sudo apt-get install -y openjdk-11-jre
-      - run: sudo apt-get install -y python3-pip
-      - run: sudo apt-get install -y python3
-
+          name: Install Maven 3.8.3
+          command: |
+            wget https://apache.osuosl.org/maven/maven-3/3.8.3/binaries/apache-maven-3.8.3-bin.tar.gz
+            tar -xzf apache-maven-3.8.3-bin.tar.gz
+            sudo mv apache-maven-3.8.3 /opt/
+            sudo ln -s /opt/apache-maven-3.8.3/bin/mvn /usr/local/bin/mvn
+      - run: sudo apt-get install -y openjdk-17-jdk
       - run: mvn -B -DskipTests clean package
-
       - run:
           name: Copy JAR file to EC2 instance
           command: |
-              echo "$SSH_KEY" > admin-panel-ssh-key.pem
-              chmod 600 admin-panel-ssh-key.pem
-              scp -i admin-panel-ssh-key.pem target/*.jar ubuntu@52.214.98.80:/home/ubuntu/app.jar
-        
+            echo "$SSH_KEY" > admin-panel-ssh-key.pem
+            chmod 600 admin-panel-ssh-key.pem
+            scp -i admin-panel-ssh-key.pem target/*.jar ubuntu@52.214.98.80:/home/ubuntu/app.jar
       - run:
           name: Install dependencies and run application
           command: |
             ssh -i "admin-panel-ssh-key.pem" -o StrictHostKeyChecking=no ubuntu@52.214.98.80 \
-              sudo yum -y install java-11-openjdk
+              sudo yum -y install java-17-openjdk
               sudo pm2 start /home/ubuntu/app.jar --name spring-boot --watch -- --server.port=5000
               sudo pm2 startup
               sudo pm2 save
-            '
-            
+
 workflows:
   build-and-deploy:
     jobs:
