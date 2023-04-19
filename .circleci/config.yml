@@ -16,12 +16,15 @@ jobs:
             sudo  ln -s /opt/apache-maven-3.9.1/bin/mvn /usr/bin/mvn
       - run: mvn -B -DskipTests clean package
       - run:
-          name:  SSH key setup and Copy jar to server
+          name:  SSH key setup
           command: |
             echo "$SSH_KEY" > admin-panel-ssh-key.pem 
             chmod 600 admin-panel-ssh-key.pem
+            cat admin-panel-ssh-key.pem
+      - run:
+          name: Copy jar to server
+          command: |
             scp -o "StrictHostKeyChecking=no" -i "admin-panel-ssh-key.pem" target/*.jar ubuntu@52.214.98.80:/home/ubuntu/app.jar
-
       - run:
           name: Install dependencies and run application
           command: |
