@@ -1,0 +1,31 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8-jdk
+    steps:
+      - checkout
+      - run: mvn package
+      - run: mkdir -p /home/ubuntu/springboot
+      - run: mv target/*.jar /home/ubuntu/springboot
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y python-pip
+      - run: sudo pip install awscli
+      - run: sudo apt-get install -y sshpass
+      - run: sshpass -p  "admin-panel-ssh-key.pem" ubuntu@52.214.98.80  scp -o StrictHostKeyChecking=no -i /home/ubuntu/circleci-ec2-ssh-key.pem /home/ubuntu/springboot/*.jar
+      - run: sudo apt-get install -y openjdk-8-jdk
+      - run: sudo apt-get install -y maven
+      - run: sudo apt-get install -y nodejs
+      - run: sudo apt-get install -y npm
+      - run: sudo npm install pm2 -g
+      - run: sudo pm2 start /home/ubuntu/springboot/*.jar
+      - run: sudo pm2 startup
+      - run: sudo pm2 save
+
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+      
