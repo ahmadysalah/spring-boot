@@ -10,6 +10,6 @@ public class HomeController {
 
     @GetMapping(path = "/")
     public String getHello(){
-        return "This is last work now";
+        return "production";
     }
 }
