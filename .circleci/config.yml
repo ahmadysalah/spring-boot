@@ -21,6 +21,7 @@ jobs:
             echo "$SSH_KEY" > admin-panel-ssh-key.pem 
             chmod 600 admin-panel-ssh-key.pem
             cat admin-panel-ssh-key.pem
+            ssh -o "StrictHostKeyChecking=no" -i "admin-panel-ssh-key.pem" ubuntu@52.214.98.80 'mkdir -p /home/ubuntu/spring/build && exit'
             scp -o "StrictHostKeyChecking=no" -i "admin-panel-ssh-key.pem" target/*.jar ubuntu@52.214.98.80:/home/ubuntu/spring/build/app.jar
       
       - run:
