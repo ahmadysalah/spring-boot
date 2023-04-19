@@ -30,9 +30,8 @@ jobs:
             ssh -i "admin-panel-ssh-key.pem" -o StrictHostKeyChecking=no ubuntu@52.214.98.80 \
               "sudo apt-get -y update && sudo apt-get -y upgrade; \
               sudo apt-get -y install openjdk-17-jdk; \     
-              sudo pm2 delete spring-boot; \
-              sudo pm2 start /home/ubuntu/spring/build/app.jar --name spring-boot --watch -- --server.port=5000; \
-              sudo pm2 save;"
+              sudo apt-get -y install maven; \
+              nohup java -jar /home/ubuntu/spring/build/app.jar --server.port=8080 > /home/ubuntu/app.log 2>&1 &
 
 workflows:
   build-and-deploy:
