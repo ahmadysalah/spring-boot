@@ -18,8 +18,8 @@ jobs:
       - run:
           name: Copy JAR file to EC2 instance
           command: |
-            echo "$SSH_KEY" > admin-panel-ssh-key.pem
-            chmod 600 admin-panel-ssh-key.pem
+            echo "$SSH_KEY" > admin-panel-ssh-key.pem &&
+            chmod 600 admin-panel-ssh-key.pem && 
             scp -o "StrictHostKeyChecking=no" -i admin-panel-ssh-key.pem target/*.jar ubuntu@52.214.98.80:/home/ubuntu/app.jar
       - run:
           name: Install dependencies and run application
