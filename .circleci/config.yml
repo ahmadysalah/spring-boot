@@ -18,12 +18,14 @@ jobs:
           name: Build JAR file
           command: |
             mvn -B -DskipTests clean package
-            echo "file=app.jar" >> $BASH_ENV
-            echo "s3key=$CIRCLE_BUILD_NUM/app.jar" >> $BASH_ENV
+            echo "file=target/*.jar" >> $BASH_ENV
+            echo "s3key=s{s3key} >> $BASH_ENV
       - persist_to_workspace:
-          root: .
+          root:  .
           paths:
-            - app.jar
+            - target/*.jar
+           
+
 
   deploy:
     docker:
