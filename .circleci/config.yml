@@ -1,6 +1,5 @@
 version: 2.1
-orbs:
-  aws-cli: circleci/aws-cli@0.1.18
+
 jobs:
   build:
     docker:
@@ -11,23 +10,25 @@ jobs:
       - run:
           name: Install Maven 3.8.3
           command: |
-            wget https://archive.apache.org/dist/maven/maven-3/3.9.1/binaries/apache-maven-3.9.1-bin.tar.gz
-            tar  -xvzf apache-maven-3.9.1-bin.tar.gz
-            sudo  mv apache-maven-3.9.1 /opt
-            sudo  ln -s /opt/apache-maven-3.9.1/bin/mvn /usr/bin/mvn
-      - run: mvn -B -DskipTests clean package
-
-  deploy_project:
-    executor: aws-cli/default
-    steps:
-      - attach_workspace:
-          at: target/
-      - aws-cli/setup:
-          profile-name: spring-env-app
+            wget https://archive.apache.org/dist/maven/maven-3/3.8.3/binaries/apache-maven-3.8.3-bin.tar.gz
+            tar -xzf apache-maven-3.8.3-bin.tar.gz
+            sudo mv apache-maven-3.8.3 /opt/
+            sudo ln -s /opt/apache-maven-3.8.3/bin/mvn /usr/local/bin/mvn
       - run:
-          name: Upload file to S3
-          command: aws s3 sync target/*.jar s3://spring-env-app-bucket
-      
+          name: Build JAR file
+          command: |
+            mvn -B -DskipTests clean package
+
+  deploy:
+    docker:
+      - image: circleci/aws-cli:latest
+    steps:
+      - run:
+          name: Deploy to Elastic Beanstalk
+          command: |
+             aws configure set region eu-west-1
+             aws elasticbeanstalk update-environment --environment-name Springtest-env --version-label v${CIRCLE_BUILD_NUM} --source-bundle S3Bucket=springo-bucket-env,S3Key=${s3key}
+
 
 workflows:
   build-and-deploy:
@@ -36,7 +37,7 @@ workflows:
           filters:
             branches:
               only: stagging
-      - deploy_project:
+      - deploy:
           requires:
             - build
           filters:
