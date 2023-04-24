@@ -27,9 +27,7 @@ jobs:
           name: Deploy to Elastic Beanstalk
           command: |
              aws configure set region eu-west-1
-             aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-             aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-             s3key=Springtest-env-${CIRCLE_SHA1}.zip
+             
              aws s3 sync target/*.jar s3://springo-bucket-env/${s3key}
              aws elasticbeanstalk update-environment --environment-name Springtest-env --version-label v${CIRCLE_BUILD_NUM} --source-bundle S3Bucket=springo-bucket-env,S3Key=${s3key}
 
