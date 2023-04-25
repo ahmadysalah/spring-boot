@@ -18,26 +18,23 @@ jobs:
           name: Build JAR file
           command: |
             mvn -B -DskipTests clean package
-      - persist_to_workspace:
-          root:  .
-          paths:
-            - target/*.jar
-           
-
+          persist_to_workspace:
+            root: ~/app/target
+            paths:
+              - myapp.jar
 
   deploy:
     docker:
       - image: amazon/aws-cli:latest
     steps:
       - attach_workspace:
-          at: .
+          at: ~/app/target
       - run:
           name: Deploy to Elastic Beanstalk
           command: |
-             aws configure set region eu-west-1
-             
-             aws s3 cp app.jar s3://springo-bucket-env/${s3key}
-             aws elasticbeanstalk update-environment --environment-name Springtest-env --version-label v${CIRCLE_BUILD_NUM} --source-bundle S3Bucket=springo-bucket-env,S3Key=${s3key}
+            aws configure set region eu-west-1
+            aws s3 cp myapp.jar s3://springo-bucket-env/${s3key}
+            aws elasticbeanstalk update-environment --environment-name Springtest-env --version-label v${CIRCLE_BUILD_NUM} --source-bundle S3Bucket=springo-bucket-env,S3Key=${s3key}
 
 workflows:
   build-and-deploy:
@@ -45,10 +42,10 @@ workflows:
       - build:
           filters:
             branches:
-              only: stagging
+              only: staging
       - deploy:
           requires:
             - build
           filters:
             branches:
-              only: stagging
+              only: staging
