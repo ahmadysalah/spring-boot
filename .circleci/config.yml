@@ -21,9 +21,6 @@ jobs:
       - run:
           name: Build JAR file
           command: mvn -B -DskipTests clean package
-
-     
-
       # Build and push the Docker image to ECR
       - run:
           name: Build and push Docker image to ECR
@@ -31,11 +28,11 @@ jobs:
             docker build -t public.ecr.aws/j4y7c7s3/springtest:latest .
             aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/j4y7c7s3
             docker push public.ecr.aws/j4y7c7s3/springtest:latest
-            
+
 workflows:
   build-and-push:
     jobs:
       - build:
           filters:
             branches:
-              only: staging
+              only: stagging
