@@ -1,6 +1,6 @@
 version: 1.0
 service:
-  name: your-app-runner-service-name
+  name: testo
   source:
     type: github
     repository:  git@github.com:ahmadysalah/spring-boot.git
