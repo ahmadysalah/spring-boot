@@ -2,10 +2,9 @@ version: 2.1
 
 orbs:
   aws-ecr: circleci/aws-ecr@8.2.1
-  aws-cli: circleci/aws-cli@3.1.5
 
 jobs:
-  build-and-push:
+  build:
     docker:
       - image: circleci/openjdk:17-jdk-buster
         environment:
@@ -28,20 +27,15 @@ jobs:
           name: Build JAR file
           command: mvn -B -DskipTests clean package
 
-      # Authenticate and log in to ECR Public
-      - aws-ecr/ecr-login-public:
-          region: us-east-1
-
       # Push Docker image to ECR
-      - aws-ecr/ecr-public-push-image:
+      - aws-ecr/push-image:
           region: us-east-1
-          repository-url: public.ecr.aws/j4y7c7s3/springtest
-          image-tag: latest
-          dockerfile: Dockerfile
-          context: .
+          public-registry: true 
+          public-registry-alias: j4y7c7s3 
+          repo: springtest 
 
 workflows:
-  build-and-push:
+  build:
     jobs:
       - build:
           filters:
