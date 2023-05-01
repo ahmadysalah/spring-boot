@@ -1,5 +1,5 @@
-# Use a base image with Java 17 installed
-FROM adoptopenjdk:17-jdk-hotspot
+# Use a base image with OpenJDK 17 installed
+FROM openjdk:17-jdk-buster
 
 # Set the working directory in the container
 WORKDIR /app
