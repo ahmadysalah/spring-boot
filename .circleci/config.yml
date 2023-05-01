@@ -4,6 +4,8 @@ jobs:
   build:
     docker:
       - image: circleci/openjdk:17-jdk-buster
+        environment:
+          DOCKER_HOST: tcp://localhost:2375
     working_directory: ~/app
     steps:
       - checkout
@@ -22,19 +24,20 @@ jobs:
           name: Build JAR file
           command: mvn -B -DskipTests clean package
 
+      # Start Docker service
+      - run:
+          name: Start Docker
+          command: |
+            sudo service docker start
+
       # Push Docker image to ECR
       - run:
           name: Push Docker image to ECR
           command: |
             docker build -t springtest .
-            docker run --rm \
-              -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-              -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-              -e AWS_DEFAULT_REGION=$AWS_REGION \
-              -e ECR_REGISTRY=public.ecr.aws/j4y7c7s3 \
-              -v $PWD:/app \
-              circleci/aws-ecr:latest \
-              sh -c 'docker login -u AWS -p $AWS_ACCESS_TOKEN $ECR_REGISTRY && docker tag springtest:latest $ECR_REGISTRY/springtest:latest && docker push $ECR_REGISTRY/springtest:latest'
+            echo "$AWS_ACCESS_KEY_ID:$SECRET_ACCESS_KEY" | docker login --username AWS --password-stdin public.ecr.aws/j4y7c7s3
+            docker tag springtest:latest public.ecr.aws/j4y7c7s3/springtest:latest
+            docker push public.ecr.aws/j4y7c7s3/springtest:latest
 
 workflows:
   build-and-push:
