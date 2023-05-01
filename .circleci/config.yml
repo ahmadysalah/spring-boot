@@ -35,6 +35,8 @@ jobs:
             aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
             aws configure set aws_secret_access_key "${SECRET_ACCESS_KEY}"
             aws configure set default.region "${REGION}"
+            aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/j4y7c7s3
+
             
 
       - setup_remote_docker
@@ -50,7 +52,6 @@ jobs:
           name: Build and push Docker image to ECR
           command: |
             docker build -t springtest .
-            echo "$AWS_REGISTRY_PASSWORD" | docker login --username AWS --password-stdin "$AWS_REGISTRY_URL"
             docker tag springtest:latest public.ecr.aws/j4y7c7s3/springtest:latest
             docker push public.ecr.aws/j4y7c7s3/springtest:latest
 
