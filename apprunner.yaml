@@ -1,10 +1,10 @@
 version: 1.0
 service:
-  name: testo
+  name: newTest
   source:
     type: github
     repository:  git@github.com:ahmadysalah/spring-boot.git
-    branch: staging
+    branch: stagging
   runtime: java11
   build:
     commands:
@@ -14,8 +14,8 @@ service:
           tar -xzf apache-maven-3.8.3-bin.tar.gz
           sudo mv apache-maven-3.8.3 /opt/
           sudo ln -s /opt/apache-maven-3.8.3/bin/mvn /usr/local/bin/mvn
-      - name: Build JAR file
-        command: |
           mvn -B -DskipTests clean package
+          
+      
   start:
     command: java -jar target/your-application.jar
