@@ -24,6 +24,11 @@ jobs:
           name: Build JAR file
           command: mvn -B -DskipTests clean package
 
+      - run:
+          name: Install Docker
+          command: |
+            dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay&
+
       # Start Docker service
       - run:
           name: Start Docker
