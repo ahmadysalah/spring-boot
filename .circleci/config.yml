@@ -10,42 +10,35 @@ jobs:
       - run:
           name: Install Maven 3.8.3
           command: |
-            wget https://archive.apache.org/dist/maven/maven-3/3.8.3/binaries/apache-maven-3.8.3-bin.tar.gz
-            tar -xzf apache-maven-3.8.3-bin.tar.gz
-            sudo mv apache-maven-3.8.3 /opt/
-            sudo ln -s /opt/apache-maven-3.8.3/bin/mvn /usr/local/bin/mvn
+            wget https://archive.apache.org/dist/maven/maven-3/3.9.1/binaries/apache-maven-3.9.1-bin.tar.gz
+            tar  -xvzf apache-maven-3.9.1-bin.tar.gz
+            sudo  mv apache-maven-3.9.1 /opt
+            sudo  ln -s /opt/apache-maven-3.9.1/bin/mvn /usr/bin/mvn
+      - run: mvn -B -DskipTests clean package
       - run:
-          name: Build JAR file
+          name:  SSH key setup
           command: |
-            mvn -B -DskipTests clean package
-          persist_to_workspace:
-            root: ~/app/target
-            paths:
-              - myapp.jar
+            echo "$SSH_KEY" > admin-panel-ssh-key.pem 
+            chmod 600 admin-panel-ssh-key.pem
+            cat admin-panel-ssh-key.pem
+            ssh -o "StrictHostKeyChecking=no" -i "admin-panel-ssh-key.pem" ubuntu@52.214.98.80 'mkdir -p /home/ubuntu/spring/build && exit'
+            scp -o "StrictHostKeyChecking=no" -i "admin-panel-ssh-key.pem" target/*.jar ubuntu@52.214.98.80:/home/ubuntu/spring/build/app.jar
+      
+      - run:
+          name: Install dependencies and run application
+          command: |
+            ssh -i "admin-panel-ssh-key.pem" -o StrictHostKeyChecking=no ubuntu@52.214.98.80 \
+              "sudo apt-get -y update && sudo apt-get -y upgrade; \
+              sudo apt-get -y install openjdk-17-jdk; \     
+              sudo apt-get -y install maven; \
+              sudo fuser -k 8080/tcp; \
+              nohup java -jar /home/ubuntu/spring/build/app.jar --server.port=8080 > /home/ubuntu/app.log 2>&1 & "
 
-  deploy:
-    docker:
-      - image: amazon/aws-cli:latest
-    steps:
-      - attach_workspace:
-          at: ~/app/target
-      - run:
-          name: Deploy to Elastic Beanstalk
-          command: |
-            aws configure set region eu-west-1
-            aws s3 cp myapp.jar s3://springo-bucket-env/${s3key}
-            aws elasticbeanstalk update-environment --environment-name Springtest-env --version-label v${CIRCLE_BUILD_NUM} --source-bundle S3Bucket=springo-bucket-env,S3Key=${s3key}
 
 workflows:
   build-and-deploy:
     jobs:
       - build:
-          filters:
-            branches:
-              only: staging
-      - deploy:
-          requires:
-            - build
           filters:
             branches:
               only: stagging
