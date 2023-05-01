@@ -36,6 +36,7 @@ jobs:
           command: |
             docker build -t springtest .
             aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/j4y7c7s3
+            docker tag springtest:latest public.ecr.aws/j4y7c7s3/springtest:latest
             docker push public.ecr.aws/j4y7c7s3/springtest:latest
 
 workflows:
