@@ -21,7 +21,6 @@ jobs:
       - run:
           name: Build JAR file
           command: mvn -B -DskipTests clean package
-
       # Install AWS CLI
       - run:
           name: Install AWS CLI
@@ -36,14 +35,23 @@ jobs:
             aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
             aws configure set aws_secret_access_key "${SECRET_ACCESS_KEY}"
             aws configure set default.region "${REGION}"
+            
+
+      - setup_remote_docker
+
+      # Start Docker service
+      - run:
+          name: Start Docker
+          command: |
+            dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay&
 
       # Build and push the Docker image to ECR
       - run:
           name: Build and push Docker image to ECR
           command: |
             docker build -t springtest .
-            docker tag springtest:latest public.ecr.aws/j4y7c7s3/springtest:latest
             aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/j4y7c7s3
+            docker tag springtest:latest public.ecr.aws/j4y7c7s3/springtest:latest
             docker push public.ecr.aws/j4y7c7s3/springtest:latest
 
 workflows:
