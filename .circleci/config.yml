@@ -21,39 +21,20 @@ jobs:
       - run:
           name: Build JAR file
           command: mvn -B -DskipTests clean package
-      # Install AWS CLI
+
+      # Push Docker image to ECR
       - run:
-          name: Install AWS CLI
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y awscli
-
-      # Configure AWS CLI
-      - run:
-          name: Configure AWS CLI
-          command: |
-            aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
-            aws configure set aws_secret_access_key "${SECRET_ACCESS_KEY}"
-            aws configure set default.region "${REGION}"
-            aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/j4y7c7s3
-
-            
-
-      - setup_remote_docker
-
-      # Start Docker service
-      - run:
-          name: Start Docker
-          command: |
-            dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay&
-
-      # Build and push the Docker image to ECR
-      - run:
-          name: Build and push Docker image to ECR
+          name: Push Docker image to ECR
           command: |
             docker build -t springtest .
-            docker tag springtest:latest public.ecr.aws/j4y7c7s3/springtest:latest
-            docker push public.ecr.aws/j4y7c7s3/springtest:latest
+            docker run --rm \
+              -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+              -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+              -e AWS_DEFAULT_REGION=$AWS_REGION \
+              -e ECR_REGISTRY=public.ecr.aws/j4y7c7s3 \
+              -v $PWD:/app \
+              circleci/aws-ecr:latest \
+              sh -c 'docker login -u AWS -p $AWS_ACCESS_TOKEN $ECR_REGISTRY && docker tag springtest:latest $ECR_REGISTRY/springtest:latest && docker push $ECR_REGISTRY/springtest:latest'
 
 workflows:
   build-and-push:
