@@ -17,18 +17,18 @@ jobs:
             sudo mv apache-maven-3.9.1 /opt
             sudo ln -s /opt/apache-maven-3.9.1/bin/mvn /usr/bin/mvn
 
-      # Install AWS CLI
-      - run:
-          name: Install AWS CLI
-          command: |
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-
       # Build the JAR file
       - run:
           name: Build JAR file
           command: mvn -B -DskipTests clean package
+
+      - setup_remote_docker
+
+      # Start Docker service
+      - run:
+          name: Start Docker
+          command: |
+            sudo service docker start
 
       # Build and push the Docker image to ECR
       - run:
