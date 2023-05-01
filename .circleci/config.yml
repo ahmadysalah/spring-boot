@@ -21,6 +21,11 @@ jobs:
       - run:
           name: Build JAR file
           command: mvn -B -DskipTests clean package
+
+      # Install Docker
+      - setup_remote_docker:
+          version: 20.10.7
+
       # Build and push the Docker image to ECR
       - run:
           name: Build and push Docker image to ECR
