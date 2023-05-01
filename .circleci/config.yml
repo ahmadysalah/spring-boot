@@ -28,7 +28,7 @@ jobs:
       - run:
           name: Start Docker
           command: |
-            sudo service docker start
+            dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay&
 
       # Build and push the Docker image to ECR
       - run:
