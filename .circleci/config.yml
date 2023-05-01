@@ -32,7 +32,7 @@ jobs:
             aws configure set aws_secret_access_key "$SECRET_ACCESS_KEY"
             aws configure set default.region "$REGION"
             aws configure set default.output json
-            aws ecr-public get-login-password --region "$REGION" | docker login --username AWS --password-stdin public.ecr.aws
+            echo $(aws ecr-public get-login-password --region "$REGION") | docker login --username AWS --password-stdin public.ecr.aws
 
 
       - setup_remote_docker
