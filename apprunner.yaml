@@ -1,6 +1,6 @@
 version: 1.0
 service:
-  name: newTest
+  name: springgo
   source:
     type: github
     repository:  git@github.com:ahmadysalah/spring-boot.git
@@ -15,7 +15,7 @@ service:
           sudo mv apache-maven-3.8.3 /opt/
           sudo ln -s /opt/apache-maven-3.8.3/bin/mvn /usr/local/bin/mvn
           mvn -B -DskipTests clean package
-          
+
       
   start:
     command: java -jar target/your-application.jar
