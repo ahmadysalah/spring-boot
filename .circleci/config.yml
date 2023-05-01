@@ -5,7 +5,7 @@ orbs:
   aws-cli: circleci/aws-cli@3.1.5
 
 jobs:
-  build:
+  build-and-push:
     docker:
       - image: circleci/openjdk:17-jdk-buster
         environment:
