@@ -1,0 +1,43 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:17-jdk-buster
+    working_directory: ~/app
+    steps:
+      - checkout
+      - run:
+          name: Install Maven 3.8.3
+          command: |
+            wget https://archive.apache.org/dist/maven/maven-3/3.9.1/binaries/apache-maven-3.9.1-bin.tar.gz
+            tar  -xvzf apache-maven-3.9.1-bin.tar.gz
+            sudo  mv apache-maven-3.9.1 /opt
+            sudo  ln -s /opt/apache-maven-3.9.1/bin/mvn /usr/bin/mvn
+      - run: mvn -B -DskipTests clean package
+      - run:
+          name:  SSH key setup
+          command: |
+            echo "$SSH_KEY" > admin-panel-ssh-key.pem 
+            chmod 600 admin-panel-ssh-key.pem
+            cat admin-panel-ssh-key.pem
+            ssh -o "StrictHostKeyChecking=no" -i "admin-panel-ssh-key.pem" ubuntu@52.214.98.80 'mkdir -p /home/ubuntu/spring/build && exit'
+            scp -o "StrictHostKeyChecking=no" -i "admin-panel-ssh-key.pem" target/*.jar ubuntu@52.214.98.80:/home/ubuntu/spring/build/app.jar
+      
+      - run:
+          name: Install dependencies and run application
+          command: |
+            ssh -i "admin-panel-ssh-key.pem" -o StrictHostKeyChecking=no ubuntu@52.214.98.80 \
+              "sudo apt-get -y update && sudo apt-get -y upgrade; \
+              sudo apt-get -y install openjdk-17-jdk; \     
+              sudo apt-get -y install maven; \
+              sudo apt-get -y install maven; \
+              sudo fuser -k 8080/tcp; \
+              nohup java -jar /home/ubuntu/spring/build/app.jar --server.port=8080 > /home/ubuntu/app.log 2>&1 & "
+workflows:
+  build-and-deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: main
