@@ -39,7 +39,6 @@ jobs:
           name: Push Docker image to ECR
           command: |
             docker build -t springtest .
-            echo "$AWS_ACCESS_KEY_ID:$SECRET_ACCESS_KEY" | docker login --username AWS --password-stdin public.ecr.aws/j4y7c7s3
             docker tag springtest:latest public.ecr.aws/j4y7c7s3/springtest:latest
             docker push public.ecr.aws/j4y7c7s3/springtest:latest
 
