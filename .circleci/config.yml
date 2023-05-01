@@ -1,9 +1,15 @@
 version: 2.1
 
+orbs:
+  aws-ecr: circleci/aws-ecr@9.0
+  aws-cli: circleci/aws-cli@3.1
+
 jobs:
   build:
     docker:
       - image: circleci/openjdk:17-jdk-buster
+        environment:
+          DOCKER_HOST: tcp://localhost:2375
     working_directory: ~/app
     steps:
       - checkout
@@ -22,39 +28,17 @@ jobs:
           name: Build JAR file
           command: mvn -B -DskipTests clean package
 
-          # Authenticate and log in to ECR Public
-      - run:
-          name: Authenticate and log in to ECR Public
-          command: |
-            sudo apt-get update -y
-            sudo apt-get install -y awscli
-            aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
-            aws configure set aws_secret_access_key "$SECRET_ACCESS_KEY"
-            aws configure set default.region "$REGION"
-            aws configure set default.output json
-            echo $(aws ecr-public get-login-password --region "$REGION") | docker login --username AWS --password-stdin public.ecr.aws
+      # Authenticate and log in to ECR Public
+      - aws-ecr/ecr-login-public:
+          region: us-east-1
 
-
-      - setup_remote_docker
-
-      # Start Docker service
-      - run:
-          name: Start Docker
-          command: |
-            dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay&
-
-      # Build and push the Docker image to ECR
-      - run:
-          name: Build and push Docker image to ECR
-          command: |
-            # Push Docker image to ECR
-      - run:
-          name: Push Docker image to ECR
-          command: |
-            docker build -t springtest .
-            docker tag springtest:latest public.ecr.aws/j4y7c7s3/springtest:latest
-            docker push public.ecr.aws/j4y7c7s3/springtest:latest
-
+      # Push Docker image to ECR
+      - aws-ecr/ecr-public-push-image:
+          region: us-east-1
+          repository-url: public.ecr.aws/j4y7c7s3/springtest
+          image-tag: latest
+          dockerfile: Dockerfile
+          context: .
 
 workflows:
   build-and-push:

@@ -1,0 +1,64 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:17-jdk-buster
+    working_directory: ~/app
+    steps:
+      - checkout
+
+      # Install Maven 3.9.1
+      - run:
+          name: Install Maven 3.9.1
+          command: |
+            wget https://archive.apache.org/dist/maven/maven-3/3.9.1/binaries/apache-maven-3.9.1-bin.tar.gz
+            tar -xvzf apache-maven-3.9.1-bin.tar.gz
+            sudo mv apache-maven-3.9.1 /opt
+            sudo ln -s /opt/apache-maven-3.9.1/bin/mvn /usr/bin/mvn
+
+      # Build the JAR file
+      - run:
+          name: Build JAR file
+          command: mvn -B -DskipTests clean package
+
+          # Authenticate and log in to ECR Public
+      - run:
+          name: Authenticate and log in to ECR Public
+          command: |
+            sudo apt-get update -y
+            sudo apt-get install -y awscli
+            aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+            aws configure set aws_secret_access_key "$SECRET_ACCESS_KEY"
+            aws configure set default.region "$REGION"
+            aws configure set default.output json
+            echo $(aws ecr-public get-login-password --region "$REGION") | docker login --username AWS --password-stdin public.ecr.aws
+
+      - setup_remote_docker
+
+      # Start Docker service
+      - run:
+          name: Start Docker
+          command: |
+            dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay&
+
+      # Build and push the Docker image to ECR
+      - run:
+          name: Build and push Docker image to ECR
+          command: |
+            # Push Docker image to ECR
+      - run:
+          name: Push Docker image to ECR
+          command: |
+            docker build -t springtest .
+            docker tag springtest:latest public.ecr.aws/j4y7c7s3/springtest:latest
+            docker push public.ecr.aws/j4y7c7s3/springtest:latest
+
+
+workflows:
+  build-and-push:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: stagging
