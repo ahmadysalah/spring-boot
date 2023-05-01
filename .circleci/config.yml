@@ -7,38 +7,35 @@ jobs:
     working_directory: ~/app
     steps:
       - checkout
+
+      # Install Maven 3.9.1
       - run:
-          name: Install Maven 3.8.3
+          name: Install Maven 3.9.1
           command: |
             wget https://archive.apache.org/dist/maven/maven-3/3.9.1/binaries/apache-maven-3.9.1-bin.tar.gz
-            tar  -xvzf apache-maven-3.9.1-bin.tar.gz
-            sudo  mv apache-maven-3.9.1 /opt
-            sudo  ln -s /opt/apache-maven-3.9.1/bin/mvn /usr/bin/mvn
-      - run: mvn -B -DskipTests clean package
-      - run:
-          name:  SSH key setup
-          command: |
-            echo "$SSH_KEY" > admin-panel-ssh-key.pem 
-            chmod 600 admin-panel-ssh-key.pem
-            cat admin-panel-ssh-key.pem
-            ssh -o "StrictHostKeyChecking=no" -i "admin-panel-ssh-key.pem" ubuntu@52.214.98.80 'mkdir -p /home/ubuntu/spring/build && exit'
-            scp -o "StrictHostKeyChecking=no" -i "admin-panel-ssh-key.pem" target/*.jar ubuntu@52.214.98.80:/home/ubuntu/spring/build/app.jar
-      
-      - run:
-          name: Install dependencies and run application
-          command: |
-            ssh -i "admin-panel-ssh-key.pem" -o StrictHostKeyChecking=no ubuntu@52.214.98.80 \
-              "sudo apt-get -y update && sudo apt-get -y upgrade; \
-              sudo apt-get -y install openjdk-17-jdk; \     
-              sudo apt-get -y install maven; \
-              sudo fuser -k 8080/tcp; \
-              nohup java -jar /home/ubuntu/spring/build/app.jar --server.port=8080 > /home/ubuntu/app.log 2>&1 & "
+            tar -xvzf apache-maven-3.9.1-bin.tar.gz
+            sudo mv apache-maven-3.9.1 /opt
+            sudo ln -s /opt/apache-maven-3.9.1/bin/mvn /usr/bin/mvn
 
+      # Build the JAR file
+      - run:
+          name: Build JAR file
+          command: mvn -B -DskipTests clean package
 
+     
+
+      # Build and push the Docker image to ECR
+      - run:
+          name: Build and push Docker image to ECR
+          command: |
+            docker build -t public.ecr.aws/j4y7c7s3/springtest:latest .
+            aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/j4y7c7s3
+            docker push public.ecr.aws/j4y7c7s3/springtest:latest
+            
 workflows:
-  build-and-deploy:
+  build-and-push:
     jobs:
       - build:
           filters:
             branches:
-              only: stagging
+              only: staging
