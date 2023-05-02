@@ -34,6 +34,7 @@ jobs:
           name: Log in to ECR Public
           command: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 
+      - setup_remote_docker
 
       - run:
           name: Install Docker
