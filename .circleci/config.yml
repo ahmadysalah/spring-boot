@@ -7,8 +7,6 @@ jobs:
   build:
     docker:
       - image: circleci/openjdk:17-jdk-buster
-        environment:
-          DOCKER_HOST: tcp://localhost:2375
     working_directory: ~/app
     steps:
       - checkout
@@ -36,6 +34,12 @@ jobs:
           name: Log in to ECR Public
           command: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 
+
+      - run:
+          name: Install Docker
+          command: |
+            dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay&
+            
       # Push Docker image to ECR
       - run:
           name: Build and push Docker image to ECR
